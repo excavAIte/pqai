@@ -9,6 +9,7 @@ from config import config
 
 CHECK_MARK = u'\u2713'
 
+
 class Index():
 
     def __init__(self):
@@ -21,10 +22,10 @@ class Index():
     @property
     def type(self):
         return self._type
-    
+
 
 class VectorIndex(Index):
-    
+
     def __init__(self):
         self._type = 'VectorIndex'
 
@@ -180,8 +181,8 @@ class IndexesDirectory():
     def get(self, index_id):
         if index_id == "*" or index_id == "all":
             return [self._get_one_index(idx) for idx in self.available()]
-        
-        index_ids = filter(lambda x: x.startswith(index_id), self.available())
+
+        index_ids = self.available()
         indexes = [self._get_one_index(idx) for idx in index_ids]
         return indexes
 
@@ -194,13 +195,16 @@ class IndexesDirectory():
         print(f'Loading vector index: {index_id}')
         index_file = self._get_index_file_path(index_id)
         json_file = f'{self._folder}/{index_id}.items.json'
+        import sys
+        print(index_file, file=sys.stderr)
         if index_file.endswith('faiss'):
             reader = FaissIndexReader()
         else:
             reader = AnnoyIndexReader(self.dims, self.metric)
         index = reader.read_from_files(index_file, json_file, name=index_id)
         self._cache_index(index_id, index)
-        print(f"  {CHECK_MARK} RAM usage: {psutil.virtual_memory()._asdict().get('percent')}%")
+        print(
+            f"  {CHECK_MARK} RAM usage: {psutil.virtual_memory()._asdict().get('percent')}%")
         return index
 
     def _get_index_file_path(self, index_id):
