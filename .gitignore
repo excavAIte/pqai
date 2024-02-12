@@ -12,6 +12,7 @@ __pycache__
 /models/*
 /indexes/*
 /datalab/*
+/dump/
 
 !indexes/README.md
 !models/README.md
