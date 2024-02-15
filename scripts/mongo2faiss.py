@@ -13,13 +13,13 @@ from tqdm import tqdm
 from pymongo import MongoClient
 
 MONGO_URI = 'mongodb://localhost:27017'
-MONGO_DB = 'pqai'
-MONGO_COLL = 'bibliography'
+MONGO_DB = 'excavaite'
+MONGO_COLL = 'patent_data'
 THIS_DIR = str(Path(__file__).parent.resolve())
 BASE_DIR = str(Path(__file__).parent.parent.resolve())
 INDEXES_DIR = "{}/indexes".format(BASE_DIR)
 
-INDEX_NAME = "test"
+INDEX_NAME = "patent_history"
 
 sys.path.append(BASE_DIR)
 from core.indexes import FaissIndex, FaissIndexReader
@@ -30,7 +30,7 @@ N_DIMS = vectorizer.embed('sample string').shape[0]
 
 client = MongoClient(MONGO_URI)
 collection = client[MONGO_DB][MONGO_COLL]
-query = {'publicationDate': {'$gte': '2021-08-07'}}
+query = {'publicationDate': {'$gte': '20010807'}}
 
 N = collection.count_documents(query)
 cursor = collection.find(query)
@@ -41,10 +41,15 @@ for i in tqdm(range(N)):
     if not cursor.alive:
         raise Exception('Mongo cursor terminated prematurely!')
     doc = cursor.next()
-    pn = doc['publicationNumber']
-    text = doc['abstract']
+    dn = doc['docNumber']
+    text = []
+    text.append(doc['title'])
+    text.append(doc['abstract'])
+    text.append(doc['description'])
+    text.append(doc['claimInfo'])
+    text = ' '.join([t for t in text if t is not None])
     vector = vectorizer.embed(text)
-    labels.append(pn)
+    labels.append(dn)
     vectors[i] = vector
 
 print('Indexing...')

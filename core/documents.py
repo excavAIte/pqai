@@ -2,6 +2,7 @@ from dateutil.parser import parse as parse_date
 from core import db
 from core import utils
 import re
+import sys
 
 class Document:
 
@@ -17,9 +18,10 @@ class Document:
 	def _load (self, force=False):
 		if self._data is None or force == True:
 			self._data = db.get_document(self.id)
+			print("SELF DATA", self._data, self.id, file=sys.stderr)
 
 	def is_patent (self):
-		return bool(re.match(r'US\d+', self._id))
+		return True
 
 	def is_npl (self):
 		return not self.is_patent()
@@ -71,6 +73,15 @@ class Document:
 			return None
 
 	@property
+	def description (self):
+		return self.data['description']
+
+
+	@property
+	def claim_info (self):
+		return self.data['claimInfo']
+
+	@property
 	def publication_date (self):
 		if self.type == 'patent':
 			return self.data['publicationDate']
@@ -83,6 +94,9 @@ class Document:
 
 	@property
 	def www_link (self):
+		# INCOMPLETE: NEEDS TO DEAL WITH URL
+		return 'www.google.com'
+		'''
 		if self.type == 'patent':
 			return utils.get_external_link(self.data['publicationNumber'])
 		elif self.type == 'npl':
@@ -92,7 +106,7 @@ class Document:
 				return self.data['s2Url']
 		else:
 			return None
-
+		'''
 
 	@property
 	def owner (self):
@@ -115,7 +129,7 @@ class Document:
 	@property
 	def publication_id (self):
 		if self.type == 'patent':
-			return self.data['publicationNumber']
+			return self.data['docNumber']
 		elif self.type == 'npl':
 			if self.data['doi']:
 				return self.data['doi']
@@ -124,12 +138,13 @@ class Document:
 		else:
 			return None
 
+
 	@property
 	def full_text(self):
 		if self.type == 'patent':
 			text = db.get_full_text(self.publication_id)
 		else:
-			text = self.title + '\n' + self.abstract
+			text = self.title + '\n' + self.abstract + '\n' + self.description + '\n' + self.claim_info
 		return text
 
 	@property

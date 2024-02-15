@@ -61,7 +61,7 @@ def get_patent_data(pn, only_bib=False):
 
 def get_patent_data_from_mongo_db(pn):
     """Retrieve patent's bibliography from Mongo DB"""
-    query = {"publicationNumber": pn}
+    query = {"docNumber": pn}
     patent = PAT_COLL.find_one(query)
     return patent
 
@@ -103,7 +103,7 @@ def get_full_text(pn):
     if patent is None:
         return None
     abstract = patent["abstract"]
-    claims = "\n".join(patent["claims"])
+    claims = patent["claimInfo"]
     desc = patent["description"]
     desc = re.sub(r"\n+(?=[^A-Z])", " ", desc)  # collapse multiple line breaks
     text = "\n".join([abstract, claims, desc])
@@ -130,6 +130,4 @@ def get_first_claim(pn):
 
 def get_document(doc_id):
     """Get a document (patent or non-patent) by its identifier"""
-    if re.match(r"US\d+", doc_id):
-        return PAT_COLL.find_one({"publicationNumber": doc_id})
-    return NPL_COLL.find_one({"id": doc_id})
+    return PAT_COLL.find_one({"docNumber": doc_id})

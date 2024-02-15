@@ -4,6 +4,7 @@ import math
 import json
 import cv2
 import markdown
+import sys
 import traceback
 import boto3
 import botocore.exceptions
