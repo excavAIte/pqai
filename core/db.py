@@ -112,7 +112,9 @@ def get_full_text(pn):
 def get_cpcs(pn):
     """Get a patent's CPCs"""
     patent = get_patent_data(pn, only_bib=False)
-    return patent.get("cpcs") if patent is not None else None
+    #return patent.get("cpcs") if patent is not None else None
+    # currently not impl
+    return 'NIL'
 
 def get_claims(pn):
     """Return claims of the patent as a list"""

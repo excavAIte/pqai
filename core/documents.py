@@ -18,7 +18,6 @@ class Document:
 	def _load (self, force=False):
 		if self._data is None or force == True:
 			self._data = db.get_document(self.id)
-			print("SELF DATA", self._data, self.id, file=sys.stderr)
 
 	def is_patent (self):
 		return True
@@ -200,8 +199,11 @@ class Patent (Document):
 
 	@property
 	def cpcs(self):
+		'''
 		biblio = db.get_patent_data(self.id, True)
 		return biblio.get('cpcs', list())
+		'''
+		return "NIL"
 
 	@property
 	def independent_claims(self):
