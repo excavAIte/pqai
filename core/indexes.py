@@ -181,7 +181,8 @@ class IndexesDirectory():
     def get(self, index_id):
         if index_id == "*" or index_id == "all":
             return [self._get_one_index(idx) for idx in self.available()]
-
+        
+        # index_ids = filter(lambda x: x.startswith(index_id), self.available())
         index_ids = self.available()
         indexes = [self._get_one_index(idx) for idx in index_ids]
         return indexes

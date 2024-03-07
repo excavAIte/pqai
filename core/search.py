@@ -98,6 +98,8 @@ class VectorIndexSearcher(Searcher):
     def _search_fn(self, vector, index, n):
         pairs = index.search(vector, n)
         pairs = [(res_id, dist) for res_id, dist in pairs if 0.0 <= dist <= 2.0]
+        # sort
+        pairs = sorted(pairs, key=lambda x: x[1])
         index_id = index.name
         triplets = [(res_id, index_id, dist) for res_id, dist in pairs]
         results = [SearchResult(*triplet) for triplet in triplets]
