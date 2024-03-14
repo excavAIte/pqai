@@ -61,7 +61,7 @@ def get_patent_data(pn, only_bib=False):
 
 def get_patent_data_from_mongo_db(pn):
     """Retrieve patent's bibliography from Mongo DB"""
-    query = {"docNumber": pn}
+    query = {"publicationNumber": pn}
     patent = PAT_COLL.find_one(query)
     return patent
 
@@ -132,4 +132,5 @@ def get_first_claim(pn):
 
 def get_document(doc_id):
     """Get a document (patent or non-patent) by its identifier"""
-    return PAT_COLL.find_one({"docNumber": doc_id})
+    print("PATENT_NUM", doc_id)
+    return PAT_COLL.find_one({"publicationNumber": doc_id})

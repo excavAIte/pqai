@@ -262,7 +262,6 @@ class SearchRequest102(SearchRequest):
         results = self._get_results()
         if self._n_results < 100:
             results = self._rerank(results)
-        print(results[0].abstract)
         results = self._deduplicate(results)
         results = results[:self._n_results]
         return results[self._offset:]
