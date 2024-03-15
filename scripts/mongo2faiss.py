@@ -41,7 +41,7 @@ for i in tqdm(range(N)):
     if not cursor.alive:
         raise Exception('Mongo cursor terminated prematurely!')
     doc = cursor.next()
-    dn = doc['docNumber']
+    dn = doc['publicationNumber']
     text = []
     text.append(doc['title'])
     text.append(doc['abstract'])

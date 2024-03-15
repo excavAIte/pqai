@@ -93,9 +93,6 @@ class Document:
 
 	@property
 	def www_link (self):
-		# INCOMPLETE: NEEDS TO DEAL WITH URL
-		return 'www.google.com'
-		'''
 		if self.type == 'patent':
 			return utils.get_external_link(self.data['publicationNumber'])
 		elif self.type == 'npl':
@@ -105,7 +102,6 @@ class Document:
 				return self.data['s2Url']
 		else:
 			return None
-		'''
 
 	@property
 	def owner (self):
@@ -128,7 +124,7 @@ class Document:
 	@property
 	def publication_id (self):
 		if self.type == 'patent':
-			return self.data['docNumber']
+			return self.data['publicationNumber']
 		elif self.type == 'npl':
 			if self.data['doi']:
 				return self.data['doi']
