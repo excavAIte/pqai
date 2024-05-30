@@ -260,6 +260,34 @@ class USearchIndex(VectorIndex):
         dists = [float(m.distance) for m in matches]
         return list(zip(labels, dists))
 
+    # TODO: Move this to indexer
+    def add_vectors(self, vectors, labels):
+        if len(vectors) != len(labels):
+            raise ValueError("Vector must map one-to-one with labels.")
+        X = self._preprocess(vectors)
+        if self._index is None:
+            self._init(X)
+        processed_labels = [int(label[2:-2]) for label in labels]
+        self._index.add(keys=np.array(processed_labels, dtype=np.uint64), vectors=X)
+        self._labels += labels
+        self._save()
+
+    def _init(self, X):
+        self._dims = X.shape[1]
+        self._labels = []
+        self._index = usearch.index.Index(ndim=self._dims, metric="cos")
+
+    def _preprocess(self, vectors):
+        X = np.array(vectors).astype("float32")
+        return X
+
+    def _save(self):
+        index_file = f"{self._index_dir}/{self._id}.usearch"
+        labels_file = f"{self._index_dir}/{self._id}.items.json"
+        self._index.save(index_file)
+        with open(labels_file, "w") as fp:
+            json.dump(self._labels, fp)
+
     @property
     def name(self):
         return self._id
