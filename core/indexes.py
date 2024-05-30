@@ -267,8 +267,7 @@ class USearchIndex(VectorIndex):
         X = self._preprocess(vectors)
         if self._index is None:
             self._init(X)
-        processed_labels = [int(label[2:-2]) for label in labels]
-        self._index.add(keys=np.array(processed_labels, dtype=np.uint64), vectors=X)
+        self._index.add(vectors=X, keys=np.arange(0, len(labels), dtype=np.uint64))
         self._labels += labels
         self._save()
 

@@ -57,6 +57,14 @@ for i in tqdm(range(N)):
 print("Saving vectors...")
 np.save(f"{INDEXES_DIR}/{INDEX_NAME}_vectors.npy", vectors)
 
+### EXISTING VECTORS ###
+# import json
+
+# vectors = np.load(f"{INDEXES_DIR}/{INDEX_NAME}_vectors.npy")
+# with open(f"{INDEXES_DIR}/{INDEX_NAME}.items.json") as f:
+#     labels = json.load(f)
+### END EXISTING ###
+
 print("Indexing...")
 index = USearchIndex(name=INDEX_NAME)
 index._index_dir = INDEXES_DIR
