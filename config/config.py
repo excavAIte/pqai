@@ -7,7 +7,7 @@ base_dir = str((Path(__file__).parent / "../").resolve())
 
 env_file = f"{base_dir}/.env"
 if os.path.isfile(env_file):
-    load_dotenv(env_file)
+    load_dotenv(env_file, override=True)
     print("Created environment from .env file.")
 
 if os.environ.get("TEST"):
