@@ -9,6 +9,7 @@ import requests
 import boto3
 import botocore.exceptions
 from pymongo import MongoClient
+from core import google_patent_scraper
 
 MONGO_HOST = os.environ["MONGO_HOST"]
 MONGO_PORT = os.environ["MONGO_PORT"]
@@ -142,4 +143,8 @@ def get_first_claim(pn):
 def get_document(doc_id):
     """Get a document (patent or non-patent) by its identifier"""
     print("PATENT_NUM", doc_id)
-    return PAT_COLL.find_one({"publicationNumber": doc_id})
+    patent_details = PAT_COLL.find_one({"publicationNumber": doc_id})
+    if "description" not in patent_details:
+        scraper = google_patent_scraper.GooglePatentScraper(doc_id)
+        patent_details["description"] = scraper.get_patent_description()
+    return patent_details

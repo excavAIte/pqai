@@ -1,3 +1,5 @@
+from pydoc import describe
+
 from dateutil.parser import parse as parse_date
 from core import db
 from core import utils
@@ -175,6 +177,7 @@ class Document:
             image=self.image if hasattr(self, "image") else None,
             alias=self.alias,
             inventors=self.inventors,
+            description=self.description,
         )
 
 
