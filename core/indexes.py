@@ -8,14 +8,14 @@ import usearch.index
 
 from config import config
 
-CHECK_MARK = u'\u2713'
+CHECK_MARK = "\u2713"
 
 
-class Index():
+class Index:
 
     def __init__(self):
         self._search_fn = None
-        self._type = 'Index'
+        self._type = "Index"
 
     def search(self, query, n):
         return self._search_fn(query, n)
@@ -28,10 +28,10 @@ class Index():
 class VectorIndex(Index):
 
     def __init__(self):
-        self._type = 'VectorIndex'
+        self._type = "VectorIndex"
 
 
-class AnnoyIndexReader():
+class AnnoyIndexReader:
 
     def __init__(self, dims, metric):
         self._dims = dims
@@ -82,10 +82,10 @@ class AnnoyIndex(VectorIndex):
         return len(v0)
 
     def __repr__(self):
-        idx_type = 'AnnoyIndex '
-        idx_name = 'Unnamed' if self._name is None else self._name
-        idx_info = f' [{self.count()} vectors, {self.dims()} dimensions]'
-        separator = ' '
+        idx_type = "AnnoyIndex "
+        idx_name = "Unnamed" if self._name is None else self._name
+        idx_info = f" [{self.count()} vectors, {self.dims()} dimensions]"
+        separator = " "
         return separator.join([idx_type, idx_name, idx_info])
 
     @property
@@ -93,7 +93,7 @@ class AnnoyIndex(VectorIndex):
         return self._name
 
 
-class FaissIndexReader():
+class FaissIndexReader:
 
     def read_from_files(self, index_file, json_file, name=None):
         index = faiss.read_index(index_file)
@@ -126,7 +126,7 @@ class FaissIndex(VectorIndex):
     # TODO: Move this to indexer
     def add_vectors(self, vectors, labels):
         if len(vectors) != len(labels):
-            raise ValueError('Vector must map one-to-one with labels.')
+            raise ValueError("Vector must map one-to-one with labels.")
         X = self._preprocess(vectors)
         if self._index is None:
             self._init(X)
@@ -141,15 +141,15 @@ class FaissIndex(VectorIndex):
         self._index.train(X)
 
     def _preprocess(self, vectors):
-        X = np.array(vectors).astype('float32')
+        X = np.array(vectors).astype("float32")
         faiss.normalize_L2(X)
         return X
 
     def _save(self):
-        index_file = f'{self._index_dir}/{self._id}.faiss'
-        labels_file = f'{self._index_dir}/{self._id}.items.json'
+        index_file = f"{self._index_dir}/{self._id}.faiss"
+        labels_file = f"{self._index_dir}/{self._id}.items.json"
         faiss.write_index(self._index, index_file)
-        with open(labels_file, 'w') as fp:
+        with open(labels_file, "w") as fp:
             json.dump(self._labels, fp)
 
     @property
@@ -157,11 +157,11 @@ class FaissIndex(VectorIndex):
         return self._id
 
 
-class IndexesDirectory():
+class IndexesDirectory:
 
     cache = {}
     dims = 1024
-    metric = 'angular'
+    metric = "angular"
     use_faiss_indexes = config.use_faiss_indexes
     use_annoy_indexes = config.use_annoy_indexes
     use_usearch_indexes = config.use_usearch_indexes
@@ -175,13 +175,13 @@ class IndexesDirectory():
         index_files = []
 
         if self.use_faiss_indexes:
-            index_files += [f for f in files if f.endswith('.faiss')]
+            index_files += [f for f in files if f.endswith(".faiss")]
         if self.use_annoy_indexes:
-            index_files += [f for f in files if f.endswith('.ann')]
+            index_files += [f for f in files if f.endswith(".ann")]
         if self.use_usearch_indexes:
-            index_files += [f for f in files if f.endswith('.usearch')]
-        
-        index_ids = ['.'.join(f.split('.')[:-1]) for f in index_files]
+            index_files += [f for f in files if f.endswith(".usearch")]
+
+        index_ids = [".".join(f.split(".")[:-1]) for f in index_files]
         return set(index_ids)
 
     def get(self, index_id):
@@ -200,39 +200,43 @@ class IndexesDirectory():
         return self._get_from_disk(index_id)
 
     def _get_from_disk(self, index_id):
-        print(f'Loading vector index: {index_id}')
+        print(f"Loading vector index: {index_id}")
 
         index_file = self._get_index_file_path(index_id)
-        json_file = f'{self._folder}/{index_id}.items.json'
-        if index_file.endswith('faiss'):
+        json_file = f"{self._folder}/{index_id}.items.json"
+        import sys
+
+        print(index_file, file=sys.stderr)
+        if index_file.endswith("faiss"):
             reader = FaissIndexReader()
-        elif index_file.endswith('ann'):
+        elif index_file.endswith("ann"):
             reader = AnnoyIndexReader(self.dims, "angular")
-        elif index_file.endswith('usearch'):
+        elif index_file.endswith("usearch"):
             reader = USearchIndexReader(self.dims, "cos")
         else:
-            raise ValueError(f'Unknown index file type: {index_file}')
-        
+            raise ValueError(f"Unknown index file type: {index_file}")
+
         index = reader.read_from_files(index_file, json_file, name=index_id)
         self._cache_index(index_id, index)
         print(
-            f"  {CHECK_MARK} RAM usage: {psutil.virtual_memory()._asdict().get('percent')}%")
+            f"  {CHECK_MARK} RAM usage: {psutil.virtual_memory()._asdict().get('percent')}%"
+        )
         return index
 
     def _get_index_file_path(self, index_id):
-        faiss_file = f'{self._folder}/{index_id}.faiss'
+        faiss_file = f"{self._folder}/{index_id}.faiss"
         if self.use_faiss_indexes and os.path.exists(faiss_file):
             return faiss_file
-        
-        ann_file = f'{self._folder}/{index_id}.ann'
+
+        ann_file = f"{self._folder}/{index_id}.ann"
         if self.use_annoy_indexes and os.path.exists(ann_file):
             return ann_file
-        
-        usearch_file = f'{self._folder}/{index_id}.usearch'
+
+        usearch_file = f"{self._folder}/{index_id}.usearch"
         if self.use_usearch_indexes and os.path.exists(usearch_file):
             return usearch_file
 
-        raise ValueError(f'Index file not found for {index_id}')
+        raise ValueError(f"Index file not found for {index_id}")
 
     def _cache_index(self, index_id, index):
         self.cache[index_id] = index
@@ -242,23 +246,50 @@ class IndexesDirectory():
 
 
 class USearchIndex(VectorIndex):
-    
-        def __init__(self, index=None, resolver_fn=None, name=None):
-            self._id = name
-            self._index = index
-            self._index2label = resolver_fn
-            self._labels = None
-            self._dims = None
-    
-        def _search_fn(self, qvec, n):
-            matches = self._index.search(qvec, n)
-            labels = [self._index2label(m.key) for m in matches]
-            dists = [float(m.distance) for m in matches]
-            return list(zip(labels, dists))
-        
-        @property
-        def name(self):
-            return self._id
+
+    def __init__(self, index=None, resolver_fn=None, name=None):
+        self._id = name
+        self._index = index
+        self._index2label = resolver_fn
+        self._labels = None
+        self._dims = None
+
+    def _search_fn(self, qvec, n):
+        matches = self._index.search(qvec, n)
+        labels = [self._index2label(m.key) for m in matches]
+        dists = [float(m.distance) for m in matches]
+        return list(zip(labels, dists))
+
+    # TODO: Move this to indexer
+    def add_vectors(self, vectors, labels):
+        if len(vectors) != len(labels):
+            raise ValueError("Vector must map one-to-one with labels.")
+        X = self._preprocess(vectors)
+        if self._index is None:
+            self._init(X)
+        self._index.add(vectors=X, keys=np.arange(0, len(labels), dtype=np.uint64))
+        self._labels += labels
+        self._save()
+
+    def _init(self, X):
+        self._dims = X.shape[1]
+        self._labels = []
+        self._index = usearch.index.Index(ndim=self._dims, metric="cos")
+
+    def _preprocess(self, vectors):
+        X = np.array(vectors).astype("float32")
+        return X
+
+    def _save(self):
+        index_file = f"{self._index_dir}/{self._id}.usearch"
+        labels_file = f"{self._index_dir}/{self._id}.items.json"
+        self._index.save(index_file)
+        with open(labels_file, "w") as fp:
+            json.dump(self._labels, fp)
+
+    @property
+    def name(self):
+        return self._id
 
 
 class USearchIndexReader:

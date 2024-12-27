@@ -1,6 +1,7 @@
 """
 This module hides the implementation details of the document storage
 """
+
 import os
 import re
 import json
@@ -59,11 +60,13 @@ def get_patent_data(pn, only_bib=False):
         return get_patent_data_from_api(pn)
     return None
 
+
 def get_patent_data_from_mongo_db(pn):
     """Retrieve patent's bibliography from Mongo DB"""
     query = {"publicationNumber": pn}
     patent = PAT_COLL.find_one(query)
     return patent
+
 
 def get_patent_data_from_s3(pn):
     """Retrieve the patent's data in its entirety from S3 bucket"""
@@ -75,6 +78,7 @@ def get_patent_data_from_s3(pn):
         return json.loads(contents)
     except botocore.exceptions.ClientError:
         return None
+
 
 def get_patent_data_from_api(pn):
     url = f"{MAIN_PQAI_SERVER_API}/patents/{pn}"
@@ -97,6 +101,7 @@ def get_bibliography(pn):
     """Return bibliography details of the patent"""
     return get_patent_data(pn, only_bib=True)
 
+
 def get_full_text(pn):
     """Return concatenated abstract, claims, and description of a patent"""
     patent = get_patent_data(pn, only_bib=False)
@@ -109,12 +114,14 @@ def get_full_text(pn):
     text = "\n".join([abstract, claims, desc])
     return text
 
+
 def get_cpcs(pn):
     """Get a patent's CPCs"""
     patent = get_patent_data(pn, only_bib=False)
-    #return patent.get("cpcs") if patent is not None else None
+    # return patent.get("cpcs") if patent is not None else None
     # currently not impl
-    return 'NIL'
+    return "NIL"
+
 
 def get_claims(pn):
     """Return claims of the patent as a list"""
@@ -125,10 +132,12 @@ def get_claims(pn):
         raise Exception(f"Claims for {pn} missing in database.")
     return patent_data.get("claims")
 
+
 def get_first_claim(pn):
     """Return first claim of the patent"""
     first_claim = get_claims(pn)[0]
     return first_claim
+
 
 def get_document(doc_id):
     """Get a document (patent or non-patent) by its identifier"""

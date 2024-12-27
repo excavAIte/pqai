@@ -9,8 +9,8 @@ import numpy as np
 from config.config import models_dir
 
 # Load stopwords
-stopword_file = models_dir + 'stopwords.txt'
-with open(stopword_file, 'r') as file:
+stopword_file = models_dir + "stopwords.txt"
+with open(stopword_file, "r") as file:
     stopword_list = file.read().strip().splitlines()
 stopword_dict = {word: 1 for word in stopword_list}
 
@@ -32,7 +32,7 @@ def calc_confidence_score(vecs):
     """
 
     # calculate vector magnitudes for normalizing
-    norms_squared = 0.00001 + (vecs*vecs).sum(axis=1, keepdims=True)
+    norms_squared = 0.00001 + (vecs * vecs).sum(axis=1, keepdims=True)
 
     # 2d matrix where element i,j is cosine similarity between
     # vectors i and j
@@ -43,10 +43,10 @@ def calc_confidence_score(vecs):
 
     # Use empirically determined thresholds for confidence score.
     if std < 25:
-        return 'High'
+        return "High"
     if 25 < std < 35:
-        return 'Medium'
-    return 'Low'
+        return "Medium"
+    return "Low"
 
 
 def is_cpc_code(item):
@@ -66,7 +66,7 @@ def is_cpc_code(item):
     """
     if not isinstance(item, str):
         return False
-    pattern = r'^[ABCDEFGHY]\d\d[A-Z]\d+\/\d+$'
+    pattern = r"^[ABCDEFGHY]\d\d[A-Z]\d+\/\d+$"
     return bool(re.fullmatch(pattern, item))
 
 
@@ -83,11 +83,13 @@ def is_patent_number(item):
     """
     if not isinstance(item, str):
         return False
-    pattern = r'^[A-Z]{2}\d+[A-Z]\d?$'
+    pattern = r"^[A-Z]{2}\d+[A-Z]\d?$"
     return bool(re.fullmatch(pattern, item))
+
 
 def is_doc_id(item):
     return is_patent_number(item)
+
 
 def is_generic(word):
     """Check if a given word is a generic word, e.g., 'the', 'of', etc.
@@ -101,6 +103,7 @@ def is_generic(word):
         bool: True if the word is a generic word, False otherwise.
     """
     return word in stopword_dict
+
 
 @lru_cache(maxsize=1000)
 def get_sentences(text):
@@ -121,11 +124,11 @@ def get_sentences(text):
         i = 0
         while i < len(chunks):
             chunk = chunks[i]
-            if re.search(ends, chunk) and i < len(chunks)-1:
-                chunks[i] = chunk + '. ' + chunks[i+1]
-                chunks.pop(i+1)
-            elif i < len(chunks)-1:
-                chunks[i] = chunks[i] + '.'
+            if re.search(ends, chunk) and i < len(chunks) - 1:
+                chunks[i] = chunk + ". " + chunks[i + 1]
+                chunks.pop(i + 1)
+            elif i < len(chunks) - 1:
+                chunks[i] = chunks[i] + "."
             i += 1
         for sentence in chunks:
             sentences.append(sentence)
@@ -156,7 +159,7 @@ def cosine_dist(a, b):
         float: Cosine distance between the vectors
     """
     dot = np.dot(a, b)
-    return dot/(np.linalg.norm(a) * np.linalg.norm(b)) if dot != 0.0 else 0.0
+    return dot / (np.linalg.norm(a) * np.linalg.norm(b)) if dot != 0.0 else 0.0
 
 
 def tokenize(text, lowercase=True):
@@ -172,20 +175,22 @@ def tokenize(text, lowercase=True):
     """
     if lowercase:
         text = text.lower()
-    matches = re.findall(r'\b[a-z]+\b', text)
+    matches = re.findall(r"\b[a-z]+\b", text)
     return [] if matches is None else matches
 
 
 def normalize_rows(M):
     return normalize_along_axis(M, 1)
 
+
 def normalize_cols(M):
     return normalize_along_axis(M, 0)
 
+
 def normalize_along_axis(M, axis):
     epsilon = np.finfo(float).eps
-    norms = np.sqrt((M*M).sum(axis=axis, keepdims=True))
-    norms += epsilon    # to avoid division by zero
+    norms = np.sqrt((M * M).sum(axis=axis, keepdims=True))
+    norms += epsilon  # to avoid division by zero
     return M / norms
 
 
@@ -199,22 +204,21 @@ def get_elements(text):
     for paragraph in get_paragraphs(text):
         elements += get_sentences(paragraph)
     elements = [el.strip() for el in elements]
-    elements = [el for el in elements
-                if len(el) >= 3 and re.search('[A-Za-z]', el)]
+    elements = [el for el in elements if len(el) >= 3 and re.search("[A-Za-z]", el)]
     return elements
 
 
 def get_external_link(pn):
-    return f'https://patents.google.com/patent/{pn}/en'
+    return f"https://patents.google.com/patent/{pn}/en"
 
 
 def get_faln(authors):
     # faln = first author's last name
     name = authors[0]
-    if ',' in name:                         # Doe, John
-        faln = re.findall(r'\w+', name)[0]
-    else:                                   # John Doe
-        faln = re.findall(r'\w+', name)[-1]
+    if "," in name:  # Doe, John
+        faln = re.findall(r"\w+", name)[0]
+    else:  # John Doe
+        faln = re.findall(r"\w+", name)[-1]
     if len(authors) > 1:
-        faln += ' et al.'
+        faln += " et al."
     return faln

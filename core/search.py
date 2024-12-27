@@ -2,7 +2,8 @@ import itertools
 from core.indexes import VectorIndex
 from core.results import SearchResult
 
-class Searcher():
+
+class Searcher:
 
     _invalid_needle_msg = "Invalid needle"
     _invalid_haystack_msg = "Invalid haystack"
@@ -13,10 +14,10 @@ class Searcher():
 
     def _needle_compatibility_fn(self, needle):
         raise NotImplementedError
-    
+
     def _search_fn(self, needle, haystack, n):
         raise NotImplementedError
-    
+
     def _sort_fn(self, results):
         return results
 
@@ -46,7 +47,7 @@ class Searcher():
         if hasattr(haystack, "__iter__"):
             return False
         raise ValueError
-    
+
     def _search_many(self, needle, haystack, n):
         list_of_lists = [self._search_one(needle, hs, n) for hs in haystack]
         results = self._flatten(list_of_lists)
