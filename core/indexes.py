@@ -174,8 +174,8 @@ class IndexesDirectory:
         files = [f.name for f in os.scandir(self._folder)]
         index_files = []
 
-        if self.use_faiss_indexes:
-            index_files += [f for f in files if f.endswith(".faiss")]
+        # if self.use_faiss_indexes:
+        #     index_files += [f for f in files if f.endswith(".faiss")]
         if self.use_annoy_indexes:
             index_files += [f for f in files if f.endswith(".ann")]
         if self.use_usearch_indexes:

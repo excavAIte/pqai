@@ -60,7 +60,7 @@ class Document:
     @property
     def title(self):
         if self.type == "patent":
-            return self.data["title"]
+            return self.data["bibliographic_information"]["title"]
         elif self.type == "npl":
             return self.data["title"]
         else:
@@ -81,12 +81,12 @@ class Document:
 
     @property
     def claim_info(self):
-        return self.data["claimInfo"]
+        return self.data["claims"]
 
     @property
     def publication_date(self):
         if self.type == "patent":
-            return self.data["publicationDate"]
+            return self.data["bibliographic_information"]["publicationDate"]
         elif self.type == "npl":
             # If only the publication year is known (and exact date is
             # unknown) consider it published on the last day of the year
@@ -97,7 +97,7 @@ class Document:
     @property
     def www_link(self):
         if self.type == "patent":
-            return utils.get_external_link(self.data["publicationNumber"])
+            return utils.get_external_link(self.data["bibliographic_information"]["publicationNumber"])
         elif self.type == "npl":
             if self.data["doiUrl"]:
                 return self.data["doiUrl"]
@@ -110,8 +110,9 @@ class Document:
     def owner(self):
         if self.type == "patent":
             arr = self.data.get("assignees")
-            if isinstance(arr, list) and len(arr) and arr[0].strip():
-                return arr[0]
+            if isinstance(arr, list) and len(arr):
+                return arr[0].get("organization_name").strip() if arr[0].get("organization_name", "") \
+                    else arr[0].get("name", "").strip()
             arr = self.data.get("applicants")
             if isinstance(arr, list) and len(arr) and arr[0].strip():
                 return arr[0]
@@ -128,7 +129,7 @@ class Document:
     @property
     def publication_id(self):
         if self.type == "patent":
-            return self.data["publicationNumber"]
+            return self.data["bibliographic_information"]["publicationNumber"]
         elif self.type == "npl":
             if self.data["doi"]:
                 return self.data["doi"]
@@ -161,8 +162,26 @@ class Document:
             return [e["name"] for e in self.data["authors"]]
 
     @property
+    def foreign_priority(self):
+        if self.type == "patent":
+            return self.data["foreign_priority"]
+
+    @property
     def alias(self):
-        return utils.get_faln(self.inventors)
+        names = [inventor.get('name') for inventor in self.inventors if isinstance(inventor, dict)]
+        return utils.get_faln(names)
+
+    @property
+    def reissue_information(self):
+        if self.type == "patent":
+            return self.data["bibliographic_information"].get("reissue_information", [])
+
+    @property
+    def related_patent_application(self):
+        if self.type == "patent":
+            return self.data["bibliographic_information"]["v2_related_us_patent_applications"] \
+                   if self.data["bibliographic_information"].get("v2_related_us_patent_applications", []) else \
+                      self.data["bibliographic_information"].get("us_provisional_application", [])
 
     def json(self):
         return dict(
@@ -178,6 +197,9 @@ class Document:
             alias=self.alias,
             inventors=self.inventors,
             description=self.description,
+            foreign_priority = self.foreign_priority,
+            reissue_information= self.reissue_information,
+
         )
 
 
@@ -229,13 +251,13 @@ class Patent(Document):
 
     @property
     def forward_citations(self):
-        biblio = db.get_patent_data(self.id, True)
-        return biblio["forwardCitations"]
+        biblio = db.get_patent_data(self.id)
+        return biblio["patent_citations"].get("forward_citation", [])
 
     @property
     def backward_citations(self):
-        biblio = db.get_patent_data(self.id, True)
-        return biblio["backwardCitations"]
+        biblio = db.get_patent_data(self.id)
+        return biblio["patent_citations"].get("backward_citations", [])
 
 
 class Paper(Document):

@@ -709,6 +709,7 @@ class PatentDataRequest(AbstractPatentDataRequest):
             "filing_date": self._patent.filing_date,
             "owner_name": self._patent.owner,
             "link": self._patent.www_link,
+            "foreign_priority": self._patent.foreign_priority,
         }
         return patent_data
 

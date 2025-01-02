@@ -41,30 +41,22 @@ MAIN_PQAI_SERVER_API = os.environ["MAIN_PQAI_SERVER_API"]
 MAIN_PQAI_SERVER_TOKEN = os.environ["MAIN_PQAI_SERVER_TOKEN"]
 
 
-def get_patent_data(pn, only_bib=False):
+def get_patent_data(pn):
     """Retrieve a patent's data from the database.
 
     Args:
         pn (str): Publication number, as it is in the database.
-        only_bib (bool, optional): Return only bibliography (as opposed to all
-            details such as claims, description, etc.)
 
     Returns:
         dict: The patent data, keys are patent fields. If no patent is found
             matching the patent number, `None` is returned.
     """
-    if only_bib:
-        return get_patent_data_from_mongo_db(pn)
-    if AWS_ACCESS_KEY_ID:
-        return get_patent_data_from_s3(pn)
-    if MAIN_PQAI_SERVER_API:
-        return get_patent_data_from_api(pn)
-    return None
+    return get_patent_data_from_mongo_db(pn)
 
 
 def get_patent_data_from_mongo_db(pn):
     """Retrieve patent's bibliography from Mongo DB"""
-    query = {"publicationNumber": pn}
+    query = {"bibliographic_information.publicationNumber": pn}
     patent = PAT_COLL.find_one(query)
     return patent
 
@@ -100,12 +92,12 @@ def get_patent_data_from_api(pn):
 
 def get_bibliography(pn):
     """Return bibliography details of the patent"""
-    return get_patent_data(pn, only_bib=True)
+    return get_patent_data(pn)
 
 
 def get_full_text(pn):
     """Return concatenated abstract, claims, and description of a patent"""
-    patent = get_patent_data(pn, only_bib=False)
+    patent = get_patent_data(pn)
     if patent is None:
         return None
     abstract = patent["abstract"]
@@ -118,7 +110,7 @@ def get_full_text(pn):
 
 def get_cpcs(pn):
     """Get a patent's CPCs"""
-    patent = get_patent_data(pn, only_bib=False)
+    patent = get_patent_data(pn)
     # return patent.get("cpcs") if patent is not None else None
     # currently not impl
     return "NIL"
@@ -143,7 +135,7 @@ def get_first_claim(pn):
 def get_document(doc_id):
     """Get a document (patent or non-patent) by its identifier"""
     print("PATENT_NUM", doc_id)
-    patent_details = PAT_COLL.find_one({"publicationNumber": doc_id})
+    patent_details = PAT_COLL.find_one({"bibliographic_information.publicationNumber": doc_id})
     if "description" not in patent_details:
         scraper = google_patent_scraper.GooglePatentScraper(doc_id)
         patent_details["description"] = scraper.get_patent_description()
