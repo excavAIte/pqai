@@ -174,8 +174,8 @@ class IndexesDirectory:
         files = [f.name for f in os.scandir(self._folder)]
         index_files = []
 
-        if self.use_faiss_indexes:
-            index_files += [f for f in files if f.endswith(".faiss")]
+        # if self.use_faiss_indexes:
+        #     index_files += [f for f in files if f.endswith(".faiss")]
         if self.use_annoy_indexes:
             index_files += [f for f in files if f.endswith(".ann")]
         if self.use_usearch_indexes:
@@ -188,10 +188,13 @@ class IndexesDirectory:
         if index_id == "*" or index_id == "all":
             index_ids = self.available()
         else:
-            index_ids = filter(lambda x: x.startswith(index_id), self.available())
+            index_ids = sorted(self.available())[0]
         indexes = []
-        for idx in sorted(index_ids):
-            indexes.append(self._get_one_index(idx))
+        if index_id == "*" or index_id == "all":
+            for idx in sorted(index_ids):
+                indexes.append(self._get_one_index(idx))
+        else:
+            indexes.append(self._get_one_index(index_ids))
         return indexes
 
     def _get_one_index(self, index_id):
